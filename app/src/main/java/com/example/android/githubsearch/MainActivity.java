@@ -6,10 +6,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.example.android.githubsearch.utils.GitHubUtils;
+import com.example.android.githubsearch.utils.NetworkUtils;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -54,9 +59,24 @@ public class MainActivity extends AppCompatActivity {
                 String searchQuery = searchBoxET.getText().toString();
                 if (!TextUtils.isEmpty(searchQuery)) {
                     githubSearchAdapter.updateSearchResults(new ArrayList<String>(Arrays.asList(dummySearchResults)));
-                    searchBoxET.setText("");
+//                    searchBoxET.setText("");
+                    String results = doGitHubSearch(searchQuery);
                 }
             }
         });
+    }
+
+    private String doGitHubSearch(String query) {
+        String url = GitHubUtils.buildGitHubSearchURL(query);
+        Log.d(TAG, "searching with this URL: " + url);
+
+        String results = null;
+        try {
+            results = NetworkUtils.doHttpGet(url);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "query results: " + results);
+        return results;
     }
 }
