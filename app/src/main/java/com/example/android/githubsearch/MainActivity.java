@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.android.githubsearch.utils.GitHubUtils;
 import com.example.android.githubsearch.utils.NetworkUtils;
@@ -24,20 +26,10 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView searchResultsRV;
     private EditText searchBoxET;
-    private GitHubSearchAdapter githubSearchAdapter;
+    private ProgressBar loadingIndicatorPB;
+    private TextView errorMessageTV;
 
-    private String[] dummySearchResults = {
-            "Dummy search results",
-            "Dummy search results",
-            "Dummy search results",
-            "Dummy search results",
-            "Dummy search results",
-            "Dummy search results",
-            "Dummy search results",
-            "Dummy search results",
-            "Dummy search results",
-            "Dummy search results"
-    };
+    private GitHubSearchAdapter githubSearchAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
         this.searchBoxET = findViewById(R.id.et_search_box);
         this.searchResultsRV = findViewById(R.id.rv_search_results);
+        this.loadingIndicatorPB = findViewById(R.id.pb_loading_indicator);
+        this.errorMessageTV = findViewById(R.id.tv_error_message);
 
         this.searchResultsRV.setLayoutManager(new LinearLayoutManager(this));
         this.searchResultsRV.setHasFixedSize(true);
@@ -76,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            loadingIndicatorPB.setVisibility(View.VISIBLE);
         }
 
         /*
@@ -103,10 +98,16 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String results) {
+            loadingIndicatorPB.setVisibility(View.INVISIBLE);
             if (results != null) {
                 ArrayList<String> searchResultsList = new ArrayList<>();
                 searchResultsList.add(results);
                 githubSearchAdapter.updateSearchResults(searchResultsList);
+                searchResultsRV.setVisibility(View.VISIBLE);
+                errorMessageTV.setVisibility(View.INVISIBLE);
+            } else {
+                searchResultsRV.setVisibility(View.INVISIBLE);
+                errorMessageTV.setVisibility(View.VISIBLE);
             }
         }
     }
