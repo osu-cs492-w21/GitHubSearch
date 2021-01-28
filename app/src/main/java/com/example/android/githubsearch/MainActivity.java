@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -58,25 +59,55 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String searchQuery = searchBoxET.getText().toString();
                 if (!TextUtils.isEmpty(searchQuery)) {
-                    githubSearchAdapter.updateSearchResults(new ArrayList<String>(Arrays.asList(dummySearchResults)));
+//                    githubSearchAdapter.updateSearchResults(new ArrayList<String>(Arrays.asList(dummySearchResults)));
 //                    searchBoxET.setText("");
-                    String results = doGitHubSearch(searchQuery);
+                    doGitHubSearch(searchQuery);
                 }
             }
         });
     }
 
-    private String doGitHubSearch(String query) {
+    private void doGitHubSearch(String query) {
         String url = GitHubUtils.buildGitHubSearchURL(query);
-        Log.d(TAG, "searching with this URL: " + url);
+        new GitHubSearchTask().execute(url);
+    }
 
-        String results = null;
-        try {
-            results = NetworkUtils.doHttpGet(url);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public class GitHubSearchTask extends AsyncTask<String,Void,String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
         }
-        Log.d(TAG, "query results: " + results);
-        return results;
+
+        /*
+            asyncTask.execute(str1, str2, str3, str4);
+         */
+        @Override
+        protected String doInBackground(String... params) {
+            String url = params[0];
+            Log.d(TAG, "searching with this URL: " + url);
+
+            String results = null;
+            try {
+                results = NetworkUtils.doHttpGet(url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, "query results: " + results);
+            return results;
+        }
+
+//        @Override
+//        protected void onProgressUpdate(Void... values) {
+//            super.onProgressUpdate(values);
+//        }
+
+        @Override
+        protected void onPostExecute(String results) {
+            if (results != null) {
+                ArrayList<String> searchResultsList = new ArrayList<>();
+                searchResultsList.add(results);
+                githubSearchAdapter.updateSearchResults(searchResultsList);
+            }
+        }
     }
 }
